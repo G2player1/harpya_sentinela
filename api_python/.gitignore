@@ -1,0 +1,41 @@
+# === Python ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.log
+
+# === Jupyter Notebooks (se usados) ===
+.ipynb_checkpoints/
+
+# === Virtual environments ===
+venv/
+.env/
+.venv/
+env/
+ENV/
+
+# === Environment variables ===
+.env
+
+# === IDEs ===
+.vscode/
+.idea/
+
+# === OS ===
+.DS_Store
+Thumbs.db
+
+# === Build artifacts ===
+*.egg-info/
+dist/
+build/
+
+# === PyInstaller ===
+*.spec
+
+# === Cache / temp ===
+*.tmp
+*.bak
+*.swp
