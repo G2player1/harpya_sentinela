@@ -2,7 +2,7 @@ package api.vitaport.health.usermodule.usecases.user;
 
 import api.vitaport.health.usermodule.domain.models.user.User;
 import api.vitaport.health.usermodule.infra.repositories.IUserRepository;
-import api.vitaport.health.usermodule.mappers.user.UserMapper;
+import api.vitaport.health.usermodule.mappers.UserMapper;
 import api.vitaport.health.usermodule.usecases.user.dtos.RegisterUserDTO;
 import api.vitaport.health.usermodule.usecases.user.validations.IRegisterUserValidation;
 import org.springframework.beans.factory.annotation.Autowired;

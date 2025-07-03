@@ -11,9 +11,7 @@ import api.vitaport.health.healthmodule.usecases.healthdata.dto.ReadHealthDataDT
 import api.vitaport.health.healthmodule.usecases.healthdata.dto.RegisterHealthDataDTO;
 import api.vitaport.health.healthmodule.usecases.healthdata.validations.IRegisterRawHealthDataValidation;
 import api.vitaport.health.healthmodule.usecases.sse.SseService;
-import api.vitaport.health.healthmodule.usecases.wearable.GetActualWearableUserUsecase;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.NoResultException;
+import api.vitaport.health.wearablemodule.usecases.wearable.GetActualWearableUserUsecase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

@@ -1,7 +1,7 @@
 package api.vitaport.health.healthmodule.domain.models.employee;
 
 import api.vitaport.health.healthmodule.domain.models.healthdata.HealthData;
-import api.vitaport.health.healthmodule.domain.models.wearable.RentedWearable;
+import api.vitaport.health.wearablemodule.domain.models.wearable.RentedWearable;
 import api.vitaport.health.usermodule.domain.models.user.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;

@@ -1,4 +1,4 @@
-package api.vitaport.health.healthmodule.usecases.wearable;
+package api.vitaport.health.wearablemodule.usecases.wearable;
 
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package api.vitaport.health.healthmodule.domain.models.wearable;
+package api.vitaport.health.wearablemodule.domain.models.wearable;
 
 import api.vitaport.health.commonmodule.infra.exceptions.CannotGetEnumException;
 import api.vitaport.health.commonmodule.infra.exceptions.ErrorEnum;

@@ -1,7 +1,7 @@
-package api.vitaport.health.healthmodule.infra.repositories;
+package api.vitaport.health.wearablemodule.infra.repositories;
 
 import api.vitaport.health.healthmodule.domain.models.employee.Employee;
-import api.vitaport.health.healthmodule.domain.models.wearable.RentedWearable;
+import api.vitaport.health.wearablemodule.domain.models.wearable.RentedWearable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

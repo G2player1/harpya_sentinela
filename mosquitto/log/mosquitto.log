@@ -86,3 +86,16 @@ To fix this, use `chmod 0700 /mosquitto/passwd`.
 1751557731: Client PythonHealthConsumer closed its connection.
 1751557738: mosquitto version 2.0.21 terminating
 1751557738: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1751557861: mosquitto version 2.0.21 starting
+1751557861: Config loaded from /mosquitto/config/mosquitto.conf.
+1751557861: Warning: File /mosquitto/passwd has world readable permissions. Future versions will refuse to load this file.
+To fix this, use `chmod 0700 /mosquitto/passwd`.
+1751557861: Opening ipv4 listen socket on port 1883.
+1751557861: Opening ipv6 listen socket on port 1883.
+1751557861: Opening websockets listen socket on port 9001.
+1751557861: mosquitto version 2.0.21 running
+1751557880: New connection from 172.18.0.5:50059 on port 1883.
+1751557880: New client connected from 172.18.0.5:50059 as PythonHealthConsumer (p5, c1, k60, u'usuario').
+1751557910: New connection from 172.18.0.1:48168 on port 1883.
+1751557910: New client connected from 172.18.0.1:48168 as MockPublisher (p5, c1, k60, u'usuario').
+1751558012: Client MockPublisher closed its connection.

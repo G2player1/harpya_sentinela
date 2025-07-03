@@ -1,9 +1,9 @@
-package api.vitaport.health.healthmodule.usecases.wearable;
+package api.vitaport.health.wearablemodule.usecases.wearable;
 
 import api.vitaport.health.commonmodule.infra.exceptions.CannotGetEntityDataException;
 import api.vitaport.health.commonmodule.infra.exceptions.ErrorEnum;
 import api.vitaport.health.healthmodule.domain.models.employee.Employee;
-import api.vitaport.health.healthmodule.infra.repositories.IRentedWearableRepository;
+import api.vitaport.health.wearablemodule.infra.repositories.IRentedWearableRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Autowired;

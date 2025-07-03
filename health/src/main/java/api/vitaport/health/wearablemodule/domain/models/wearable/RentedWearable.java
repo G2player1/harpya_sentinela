@@ -1,8 +1,7 @@
-package api.vitaport.health.healthmodule.domain.models.wearable;
+package api.vitaport.health.wearablemodule.domain.models.wearable;
 
 import api.vitaport.health.healthmodule.domain.models.employee.Employee;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

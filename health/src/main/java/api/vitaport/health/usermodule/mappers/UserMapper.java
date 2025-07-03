@@ -1,4 +1,4 @@
-package api.vitaport.health.usermodule.mappers.user;
+package api.vitaport.health.usermodule.mappers;
 
 import api.vitaport.health.usermodule.domain.models.user.User;
 import api.vitaport.health.usermodule.domain.models.user.UserRole;

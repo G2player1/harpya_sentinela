@@ -3,7 +3,7 @@ package api.vitaport.health.usermodule.controllers;
 
 
 import api.vitaport.health.usermodule.domain.models.user.User;
-import api.vitaport.health.usermodule.mappers.user.UserMapper;
+import api.vitaport.health.usermodule.mappers.UserMapper;
 import api.vitaport.health.usermodule.usecases.user.*;
 import api.vitaport.health.usermodule.usecases.user.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
