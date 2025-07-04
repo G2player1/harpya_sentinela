@@ -1,16 +1,29 @@
+import asyncio
 import json
-import time
-from paho.mqtt import client as mqtt_client
+from gmqtt import Client as MQTTClient
+from aiokafka import AIOKafkaProducer
 import numpy as np
 import scipy.signal as signal
-from kafka import KafkaProducer
-import kafka.errors
+from concurrent.futures import ThreadPoolExecutor
+
+BROKER_HOST = 'mosquitto'
+BROKER_PORT = 1883
+MQTT_TOPIC = 'esp32/health'
+KAFKA_TOPIC = 'health.data'
+KAFKA_BOOTSTRAP = 'kafka:9092'
 
 SAMPLE_SIZE = 100
 WINDOW_SIZE = 5
 
+executor = ThreadPoolExecutor(max_workers=4)
+
 class Processor:
-    def __init__(self):
+    def __init__(self, kafka_producer):
+        self.kafka_producer = kafka_producer
+        self.reset_buffers()
+        self.bpm_window, self.spo2_window, self.rmssd_window, self.sdnn_window = [], [], [], []
+
+    def reset_buffers(self):
         self.ecg_buffer = []
         self.red_raw = []
         self.ir_raw = []
@@ -18,27 +31,6 @@ class Processor:
         self.temp_buffer = []
         self.fall_buffer = []
         self.timestamp_buffer = []
-
-        self.rr_intervals = []
-        self.bpm_window = []
-        self.spo2_window = []
-        self.rmssd_window = []
-        self.sdnn_window = []
-
-        # Retry para conexão com Kafka
-        for attempt in range(10):
-            try:
-                self.producer = KafkaProducer(
-                    bootstrap_servers='kafka:9092',
-                    value_serializer=lambda v: json.dumps(v).encode('utf-8')
-                )
-                print("Conectado ao Kafka!")
-                break
-            except kafka.errors.NoBrokersAvailable:
-                print(f"[Kafka] Broker não disponível. Tentativa {attempt + 1}/10...")
-                time.sleep(5)
-        else:
-            raise Exception("Falha ao conectar ao Kafka após várias tentativas.")
 
     def bandpass_filter(self, signal_data, fs=100.0, lowcut=0.5, highcut=40.0, order=4):
         nyq = 0.5 * fs
@@ -82,7 +74,8 @@ class Processor:
             inconsistencias.append("SDNN alto com SpO2 baixo")
         return "inconsistente: " + "; ".join(inconsistencias) if inconsistencias else "consistente"
 
-    def processar_dados(self, dados):
+    def processar_amostras(self, dados):
+        # Mesma lógica de adicionar buffers e processar quando atingir SAMPLE_SIZE
         self.ecg_buffer += dados.get('ecg', [])
         self.red_raw += dados.get('red', [])
         self.ir_raw += dados.get('ir', [])
@@ -91,108 +84,112 @@ class Processor:
         self.fall_buffer += dados.get('fall', [])
         self.timestamp_buffer += dados.get('timestamp', [])
 
-        if len(self.ecg_buffer) >= SAMPLE_SIZE:
-            ecg_array = self.bandpass_filter(np.array(self.ecg_buffer[:SAMPLE_SIZE]))
-            red_array = np.array(self.red_raw[:SAMPLE_SIZE])
-            ir_array = np.array(self.ir_raw[:SAMPLE_SIZE])
+        if len(self.ecg_buffer) < SAMPLE_SIZE:
+            return []  # ainda não tem dados suficientes
 
-            peaks = self.detect_peaks(ecg_array)
+        # Preparar dados para processamento
+        ecg_array = self.bandpass_filter(np.array(self.ecg_buffer[:SAMPLE_SIZE]))
+        red_array = np.array(self.red_raw[:SAMPLE_SIZE])
+        ir_array = np.array(self.ir_raw[:SAMPLE_SIZE])
 
-            self.rr_intervals.clear()
-            for i in range(1, len(peaks)):
-                rr = (peaks[i] - peaks[i - 1]) / 100.0
-                self.rr_intervals.append(rr)
+        peaks = self.detect_peaks(ecg_array)
 
-            beat_count = len(self.rr_intervals)
-            rr_mean = np.mean(self.rr_intervals) if beat_count > 0 else 0
-            rmssd = np.sqrt(np.mean(np.diff(self.rr_intervals) ** 2)) if beat_count > 1 else 0
-            sdnn = np.std(self.rr_intervals) if beat_count > 1 else 0
-            bpm = 60.0 / rr_mean if rr_mean > 0 else 0
-            amplitude = np.max(ecg_array) - np.min(ecg_array)
-            spo2 = self.calcular_spo2(red_array, ir_array)
+        rr_intervals = []
+        for i in range(1, len(peaks)):
+            rr = (peaks[i] - peaks[i - 1]) / 100.0
+            rr_intervals.append(rr)
 
-            qualidade = self.avaliar_qualidade(
-                beat_count, amplitude,
-                max(self.rr_intervals, default=0), min(self.rr_intervals, default=0), rmssd
-            )
+        beat_count = len(rr_intervals)
+        rr_mean = np.mean(rr_intervals) if beat_count > 0 else 0
+        rmssd = np.sqrt(np.mean(np.diff(rr_intervals) ** 2)) if beat_count > 1 else 0
+        sdnn = np.std(rr_intervals) if beat_count > 1 else 0
+        bpm = 60.0 / rr_mean if rr_mean > 0 else 0
+        amplitude = np.max(ecg_array) - np.min(ecg_array)
+        spo2 = self.calcular_spo2(red_array, ir_array)
 
-            self.bpm_window.append(bpm)
-            self.spo2_window.append(spo2)
-            self.rmssd_window.append(rmssd)
-            self.sdnn_window.append(sdnn)
+        qualidade = self.avaliar_qualidade(
+            beat_count, amplitude,
+            max(rr_intervals, default=0), min(rr_intervals, default=0), rmssd
+        )
 
-            if len(self.bpm_window) > WINDOW_SIZE:
-                self.bpm_window.pop(0)
-                self.spo2_window.pop(0)
-                self.rmssd_window.pop(0)
-                self.sdnn_window.pop(0)
+        self.bpm_window.append(bpm)
+        self.spo2_window.append(spo2)
+        self.rmssd_window.append(rmssd)
+        self.sdnn_window.append(sdnn)
 
-            consistencia = self.verificar_consistencia(bpm, spo2, rmssd, sdnn, amplitude, qualidade)
+        if len(self.bpm_window) > WINDOW_SIZE:
+            self.bpm_window.pop(0)
+            self.spo2_window.pop(0)
+            self.rmssd_window.pop(0)
+            self.sdnn_window.pop(0)
 
-            frame_count = min(SAMPLE_SIZE, len(self.wearable_id_buffer), len(self.temp_buffer),
-                              len(self.fall_buffer), len(self.timestamp_buffer))
+        consistencia = self.verificar_consistencia(bpm, spo2, rmssd, sdnn, amplitude, qualidade)
 
-            for i in range(frame_count):
-                frame_json = {
-                    "wearable_id": self.wearable_id_buffer[i],
-                    "rawRedPPG": float(self.red_raw[i]),
-                    "rawIRPPG": float(self.ir_raw[i]),
-                    "rawECG": float(self.ecg_buffer[i]),
-                    "heartRate": bpm,
-                    "spo2": spo2,
-                    "hrvSDNN": sdnn,
-                    "hrvRMSSD": rmssd,
-                    "fallDetected": self.fall_buffer[i],
-                    "skinTemp": self.temp_buffer[i],
-                    "timestamp": self.timestamp_buffer[i],
-                    "amplitude": amplitude,
-                    "quality": qualidade,
-                    "consistence": consistencia
-                }
-                self.producer.send('health.data', frame_json)
+        frame_count = min(SAMPLE_SIZE, len(self.wearable_id_buffer), len(self.temp_buffer),
+                          len(self.fall_buffer), len(self.timestamp_buffer))
 
-            # Limpa os buffers processados
-            self.ecg_buffer = self.ecg_buffer[SAMPLE_SIZE:]
-            self.red_raw = self.red_raw[SAMPLE_SIZE:]
-            self.ir_raw = self.ir_raw[SAMPLE_SIZE:]
-            self.wearable_id_buffer = self.wearable_id_buffer[frame_count:]
-            self.temp_buffer = self.temp_buffer[frame_count:]
-            self.fall_buffer = self.fall_buffer[frame_count:]
-            self.timestamp_buffer = self.timestamp_buffer[frame_count:]
+        frames = []
+        for i in range(frame_count):
+            frame_json = {
+                "wearable_id": self.wearable_id_buffer[i],
+                "rawRedPPG": float(self.red_raw[i]),
+                "rawIRPPG": float(self.ir_raw[i]),
+                "rawECG": float(self.ecg_buffer[i]),
+                "heartRate": bpm,
+                "spo2": spo2,
+                "hrvSDNN": sdnn,
+                "hrvRMSSD": rmssd,
+                "fallDetected": self.fall_buffer[i],
+                "skinTemp": self.temp_buffer[i],
+                "timestamp": self.timestamp_buffer[i],
+                "amplitude": amplitude,
+                "quality": qualidade,
+                "consistence": consistencia
+            }
+            frames.append(frame_json)
 
-            print(f"{frame_count} frames enviados via Kafka — Consistência: {consistencia}")
+        # Limpar buffers
+        self.ecg_buffer = self.ecg_buffer[SAMPLE_SIZE:]
+        self.red_raw = self.red_raw[SAMPLE_SIZE:]
+        self.ir_raw = self.ir_raw[SAMPLE_SIZE:]
+        self.wearable_id_buffer = self.wearable_id_buffer[frame_count:]
+        self.temp_buffer = self.temp_buffer[frame_count:]
+        self.fall_buffer = self.fall_buffer[frame_count:]
+        self.timestamp_buffer = self.timestamp_buffer[frame_count:]
 
-def on_connect(client, userdata, flags, rc, properties=None):
-    if rc == 0:
-        print("Conectado ao broker MQTT com sucesso")
-        client.subscribe("esp32/health", qos=2)
-    else:
-        print(f"Falha na conexão MQTT, código: {rc}")
+        return frames
 
-def on_message(client, userdata, msg, properties=None):
-    try:
-        dados = json.loads(msg.payload.decode())
-        userdata.processar_dados(dados)
-    except Exception as e:
-        print("Erro no processamento MQTT:", e)
+async def main():
+    producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
+    await producer.start()
+    processor = Processor(kafka_producer=producer)
 
-def main():
-    processor = Processor()
+    client = MQTTClient("python-health-consumer")
 
-    client = mqtt_client.Client(
-        client_id="PythonHealthConsumer",
-        userdata=processor,
-        protocol=mqtt_client.MQTTv5,
-        transport="tcp"
-    )
+    async def on_connect(client, flags, rc, properties):
+        print("Conectado MQTT")
+        client.subscribe(MQTT_TOPIC, qos=2)
 
-    client.username_pw_set(username="usuario", password="Enos123#")
+    async def on_message(client, topic, payload, qos, properties):
+        try:
+            dados = json.loads(payload.decode())
+            # Processar em thread pool para não bloquear event loop
+            frames = await asyncio.get_event_loop().run_in_executor(executor, processor.processar_amostras, dados)
+
+            # Enviar frames para Kafka assincronamente
+            for frame in frames:
+                await producer.send_and_wait(KAFKA_TOPIC, json.dumps(frame).encode())
+
+            if frames:
+                print(f"{len(frames)} frames enviados para Kafka")
+        except Exception as e:
+            print("Erro:", e)
+
     client.on_connect = on_connect
     client.on_message = on_message
 
-    # 🛠️ Ajuste de host para Mosquitto
-    client.connect("mosquitto", 1883, keepalive=60)
-    client.loop_forever()
+    await client.connect(BROKER_HOST, BROKER_PORT)
+    await asyncio.Future()  # loop infinito
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

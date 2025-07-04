@@ -1,41 +1,37 @@
-# === Python ===
+# Bytecode Python
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-*.so
+
+# Arquivos temporários
 *.log
+*.tmp
+*.bak
+*.swp
 
-# === Jupyter Notebooks (se usados) ===
-.ipynb_checkpoints/
-
-# === Virtual environments ===
+# Ambientes virtuais
 venv/
 .env/
 .venv/
 env/
 ENV/
 
-# === Environment variables ===
+# Variáveis de ambiente
 .env
 
-# === IDEs ===
+# IDEs
 .vscode/
 .idea/
 
-# === OS ===
+# Arquivos do sistema operacional
 .DS_Store
 Thumbs.db
 
-# === Build artifacts ===
+# Build e distribuições
 *.egg-info/
 dist/
 build/
 
-# === PyInstaller ===
+# PyInstaller
 *.spec
-
-# === Cache / temp ===
-*.tmp
-*.bak
-*.swp

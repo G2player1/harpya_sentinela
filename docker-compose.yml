@@ -48,6 +48,25 @@ services:
     networks:
       - vitanet
 
+  kafka-create-topics:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - kafka
+    entrypoint:
+      - sh
+      - -c
+      - |
+        # Aguarda o Kafka subir
+        until kafka-topics --bootstrap-server kafka:9092 --list; do
+          echo "Esperando Kafka iniciar..."
+          sleep 5
+        done
+        # Cria o tópico com 6 partições se não existir
+        kafka-topics --bootstrap-server kafka:9092 --create --topic health.data --partitions 6 --replication-factor 1 --if-not-exists
+        echo "Tópico criado (ou já existia)."
+    networks:
+      - vitanet
+
   mosquitto:
     image: eclipse-mosquitto:2.0
     container_name: mosquitto
@@ -62,8 +81,7 @@ services:
     networks:
       - vitanet
 
-
-
 networks:
   vitanet:
     driver: bridge
+

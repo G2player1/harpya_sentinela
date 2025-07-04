@@ -99,3 +99,7 @@ To fix this, use `chmod 0700 /mosquitto/passwd`.
 1751557910: New connection from 172.18.0.1:48168 on port 1883.
 1751557910: New client connected from 172.18.0.1:48168 as MockPublisher (p5, c1, k60, u'usuario').
 1751558012: Client MockPublisher closed its connection.
+1751559662: Saving in-memory database to /mosquitto/data//mosquitto.db.
+1751560409: Client PythonHealthConsumer closed its connection.
+1751560410: mosquitto version 2.0.21 terminating
+1751560410: Saving in-memory database to /mosquitto/data//mosquitto.db.
