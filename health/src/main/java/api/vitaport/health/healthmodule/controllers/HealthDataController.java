@@ -3,19 +3,19 @@ package api.vitaport.health.healthmodule.controllers;
 import api.vitaport.health.commonmodule.infra.config.GlobalSecretKeys;
 import api.vitaport.health.healthmodule.domain.models.healthdata.HealthData;
 import api.vitaport.health.healthmodule.mappers.HealthDataMapper;
-import api.vitaport.health.healthmodule.usecases.healthdata.GetEmployeeHealthDataListUsecase;
-import api.vitaport.health.healthmodule.usecases.healthdata.GetHealthDataUsecase;
-import api.vitaport.health.healthmodule.usecases.healthdata.GetLastEmployeeHealthDataListUsecase;
-import api.vitaport.health.healthmodule.usecases.healthdata.GetLastEmployeeHealthDataUsecase;
+import api.vitaport.health.healthmodule.usecases.healthdata.*;
 import api.vitaport.health.healthmodule.usecases.healthdata.dto.ReadHealthDataDTO;
 import api.vitaport.health.healthmodule.usecases.sse.SseService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -27,6 +27,7 @@ import java.util.UUID;
 public class HealthDataController {
 
     private final GetEmployeeHealthDataListUsecase getEmployeeHealthDataListUsecase;
+    private final GetEmployeeHealthDataPageUsecase getEmployeeHealthDataPageUsecase;
     private final GetHealthDataUsecase getHealthDataUsecase;
     private final GetLastEmployeeHealthDataUsecase getLastEmployeeHealthDataUsecase;
     private final GetLastEmployeeHealthDataListUsecase getLastEmployeeHealthDataListUsecase;
@@ -40,6 +41,7 @@ public class HealthDataController {
                                 GlobalSecretKeys globalSecretKeys,
                                 HealthDataMapper healthDataMapper,
                                 GetEmployeeHealthDataListUsecase getEmployeeHealthDataListUsecase,
+                                GetEmployeeHealthDataPageUsecase getEmployeeHealthDataPageUsecase,
                                 GetLastEmployeeHealthDataUsecase getLastEmployeeHealthDataUsecase,
                                 GetLastEmployeeHealthDataListUsecase getLastEmployeeHealthDataListUsecase){
         this.getHealthDataUsecase = getHealthDataUsecase;
@@ -47,6 +49,7 @@ public class HealthDataController {
         this.healthDataMapper = healthDataMapper;
         this.globalSecretKeys = globalSecretKeys;
         this.getEmployeeHealthDataListUsecase = getEmployeeHealthDataListUsecase;
+        this.getEmployeeHealthDataPageUsecase = getEmployeeHealthDataPageUsecase;
         this.getLastEmployeeHealthDataUsecase = getLastEmployeeHealthDataUsecase;
         this.getLastEmployeeHealthDataListUsecase = getLastEmployeeHealthDataListUsecase;
     }
@@ -63,6 +66,13 @@ public class HealthDataController {
         List<HealthData> healthDataList = getEmployeeHealthDataListUsecase.execute(employee_id);
         List<ReadHealthDataDTO> readHealthDataDTOList = healthDataMapper.mapToReadHealthData(healthDataList);
         return ResponseEntity.ok(readHealthDataDTOList);
+    }
+
+    @GetMapping(value = "/page", params = {"employee_id"})
+    public ResponseEntity<Page<ReadHealthDataDTO>> getEmployeeHealthDataPage(@Param("employee_id") UUID employee_id, Pageable pageable){
+        Page<HealthData> healthDataPage = getEmployeeHealthDataPageUsecase.execute(employee_id, pageable);
+        Page<ReadHealthDataDTO> readHealthDataDTOPage = healthDataMapper.mapToReadHealthData(healthDataPage);
+        return ResponseEntity.ok(readHealthDataDTOPage);
     }
 
     @GetMapping(value = "/last", params = {"employee_id"})

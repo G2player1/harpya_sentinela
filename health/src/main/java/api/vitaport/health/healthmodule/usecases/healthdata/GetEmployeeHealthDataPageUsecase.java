@@ -7,27 +7,28 @@ import api.vitaport.health.healthmodule.infra.repositories.IHealthDataRepository
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.NoResultException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
-public class GetEmployeeHealthDataListUsecase {
+public class GetEmployeeHealthDataPageUsecase {
 
     private final IHealthDataRepository healthDataRepository;
 
     @Autowired
-    public GetEmployeeHealthDataListUsecase(IHealthDataRepository healthDataRepository){
+    public GetEmployeeHealthDataPageUsecase(IHealthDataRepository healthDataRepository){
         this.healthDataRepository = healthDataRepository;
     }
 
-    public List<HealthData> execute(UUID employee_id){
-        List<HealthData> healthDataList;
+
+    public Page<HealthData> execute(UUID employeeId, Pageable pageable) {
         try {
-            return healthDataRepository.findAllByEmployee(employee_id);
-        } catch (EntityNotFoundException | NoResultException e) {
-            throw new CannotGetEntityDataException(400, ErrorEnum.LBDQ, "cant get list of health data by employee uuid");
+            return healthDataRepository.findAllByEmployee(employeeId, pageable);
+        } catch (EntityNotFoundException | NoResultException e){
+            throw new CannotGetEntityDataException(400, ErrorEnum.LBDQ,"cant get employee's health data by employee_id");
         }
     }
 }

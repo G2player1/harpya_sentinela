@@ -1,6 +1,8 @@
 package api.vitaport.health.healthmodule.infra.repositories;
 
 import api.vitaport.health.healthmodule.domain.models.healthdata.HealthData;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +24,9 @@ public interface IHealthDataRepository extends JpaRepository<HealthData, UUID> {
 
     @Query(value = "select * from health_data where employee_id = :employee_id", nativeQuery = true)
     List<HealthData> findAllByEmployee(@Param("employee_id") UUID employee_id);
+
+    @Query(value = "select * from health_data where employee_id = :employee_id", nativeQuery = true)
+    Page<HealthData> findAllByEmployee(@Param("employee_id") UUID employee_id, Pageable pageable);
 
     @Query(" SELECT h FROM HealthData h WHERE h.employee.id = :employeeId AND h.timestamp = :timestamp")
     Optional<HealthData> findByEmployeeIdAndTimestamp(@Param("employeeId") UUID employeeId, @Param("timestamp") LocalDateTime timestamp);

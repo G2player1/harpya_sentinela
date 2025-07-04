@@ -45,6 +45,7 @@ public class User implements UserDetails {
         this.email = email;
         this.password = new BCryptPasswordEncoder().encode(password);
         this.userRole = userRole;
+        this.active = true;
     }
 
     @Override
