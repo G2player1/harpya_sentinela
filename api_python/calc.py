@@ -5,6 +5,7 @@ from aiokafka import AIOKafkaProducer
 import numpy as np
 import scipy.signal as signal
 from concurrent.futures import ThreadPoolExecutor
+import socket
 
 BROKER_HOST = 'mosquitto'
 BROKER_PORT = 1883
@@ -16,6 +17,19 @@ SAMPLE_SIZE = 100
 WINDOW_SIZE = 5
 
 executor = ThreadPoolExecutor(max_workers=4)
+
+async def wait_for_kafka(host, port, retries=20, delay=3):
+    for _ in range(retries):
+        try:
+            reader, writer = await asyncio.open_connection(host, port)
+            writer.close()
+            await writer.wait_closed()
+            print("Kafka disponível!")
+            return
+        except Exception:
+            print("Esperando Kafka iniciar...")
+            await asyncio.sleep(delay)
+    raise Exception("Kafka não disponível após várias tentativas")
 
 class Processor:
     def __init__(self, kafka_producer):
@@ -75,7 +89,6 @@ class Processor:
         return "inconsistente: " + "; ".join(inconsistencias) if inconsistencias else "consistente"
 
     def processar_amostras(self, dados):
-        # Mesma lógica de adicionar buffers e processar quando atingir SAMPLE_SIZE
         self.ecg_buffer += dados.get('ecg', [])
         self.red_raw += dados.get('red', [])
         self.ir_raw += dados.get('ir', [])
@@ -85,20 +98,15 @@ class Processor:
         self.timestamp_buffer += dados.get('timestamp', [])
 
         if len(self.ecg_buffer) < SAMPLE_SIZE:
-            return []  # ainda não tem dados suficientes
+            return []
 
-        # Preparar dados para processamento
         ecg_array = self.bandpass_filter(np.array(self.ecg_buffer[:SAMPLE_SIZE]))
         red_array = np.array(self.red_raw[:SAMPLE_SIZE])
         ir_array = np.array(self.ir_raw[:SAMPLE_SIZE])
 
         peaks = self.detect_peaks(ecg_array)
 
-        rr_intervals = []
-        for i in range(1, len(peaks)):
-            rr = (peaks[i] - peaks[i - 1]) / 100.0
-            rr_intervals.append(rr)
-
+        rr_intervals = [(peaks[i] - peaks[i - 1]) / 100.0 for i in range(1, len(peaks))]
         beat_count = len(rr_intervals)
         rr_mean = np.mean(rr_intervals) if beat_count > 0 else 0
         rmssd = np.sqrt(np.mean(np.diff(rr_intervals) ** 2)) if beat_count > 1 else 0
@@ -148,7 +156,6 @@ class Processor:
             }
             frames.append(frame_json)
 
-        # Limpar buffers
         self.ecg_buffer = self.ecg_buffer[SAMPLE_SIZE:]
         self.red_raw = self.red_raw[SAMPLE_SIZE:]
         self.ir_raw = self.ir_raw[SAMPLE_SIZE:]
@@ -160,23 +167,28 @@ class Processor:
         return frames
 
 async def main():
+    await wait_for_kafka("kafka", 9092)
+
     producer = AIOKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP)
     await producer.start()
     processor = Processor(kafka_producer=producer)
 
     client = MQTTClient("python-health-consumer")
+    client.set_auth_credentials("usuario", "Enos123#")
 
-    async def on_connect(client, flags, rc, properties):
+    def on_connect(client, flags, rc, properties):
         print("Conectado MQTT")
         client.subscribe(MQTT_TOPIC, qos=2)
 
-    async def on_message(client, topic, payload, qos, properties):
+    def on_message(client, topic, payload, qos, properties):
+        asyncio.create_task(processar_payload(payload))
+
+    async def processar_payload(payload):
         try:
             dados = json.loads(payload.decode())
-            # Processar em thread pool para não bloquear event loop
-            frames = await asyncio.get_event_loop().run_in_executor(executor, processor.processar_amostras, dados)
-
-            # Enviar frames para Kafka assincronamente
+            frames = await asyncio.get_event_loop().run_in_executor(
+                executor, processor.processar_amostras, dados
+            )
             for frame in frames:
                 await producer.send_and_wait(KAFKA_TOPIC, json.dumps(frame).encode())
 
