@@ -21,11 +21,11 @@ public class RentedWearable {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     @JoinColumn(name = "wearable_id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JsonBackReference
     private Wearable wearable;
     @JoinColumn(name = "employee_id")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
     @JsonBackReference
     private Employee employee;
     @Column(name = "start_datetime", nullable = false)

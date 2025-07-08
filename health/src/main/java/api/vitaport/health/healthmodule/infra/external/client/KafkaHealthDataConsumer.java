@@ -24,13 +24,13 @@ public class KafkaHealthDataConsumer {
         this.registerHealthDataUsecase = registerHealthDataUsecase;
     }
 
-    @KafkaListener(topics = "health.data", groupId = "vitaport-health-group")
+    @KafkaListener(topics = "health.data", groupId = "vitaport-health-group", containerFactory = "HealthDataListenerContainerFactory")
     public void listen(String message) {
         try {
             RegisterHealthDataDTO dto = objectMapper.readValue(message, RegisterHealthDataDTO.class);
             logger.info("Data transfer object successfully received: {}",dto);
             registerHealthDataUsecase.execute(dto);
-            logger.info(" Dado de saúde salvo com sucesso");
+            logger.info("Data transfer object successfully saved");
         } catch (Exception e) {
             logger.error(" Falha ao processar dado: {}", e.getMessage(), e);
         }

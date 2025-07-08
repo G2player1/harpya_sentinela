@@ -1,5 +1,7 @@
 package api.vitaport.health.healthmodule.domain.models.employee;
 
+import api.vitaport.health.gpsmodule.domain.models.EmployeeLoc;
+import api.vitaport.health.gpsmodule.domain.models.RestrictedEmployee;
 import api.vitaport.health.healthmodule.domain.models.healthdata.HealthData;
 import api.vitaport.health.wearablemodule.domain.models.wearable.RentedWearable;
 import api.vitaport.health.usermodule.domain.models.user.User;
@@ -37,10 +39,18 @@ public class Employee {
     @OneToMany(mappedBy = "employee", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonManagedReference
     private List<HealthData> healthDataList;
-    @OneToMany(mappedBy = "employee", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-    @JsonManagedReference
-    private List<RentedWearable> rentedWearables;
     @Setter
+    @OneToOne(mappedBy = "employee", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private RentedWearable rentedWearable;
+    @Setter
+    @OneToOne(mappedBy = "employee", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private EmployeeLoc employeeLoc;
+    @Setter
+    @OneToMany(mappedBy = "employee", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    private List<RestrictedEmployee> restrictedEmployees;
+    @Setter
+    @JoinColumn(name = "user_id")
     @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonBackReference
     private User user;
@@ -52,7 +62,6 @@ public class Employee {
         this.registrationNumber = registrationNumber;
         this.socialName = socialName;
         this.healthDataList = new ArrayList<>();
-        this.rentedWearables = new ArrayList<>();
     }
 
     public void addHealthData(@NotNull(message = "Health data is null") HealthData healthData){

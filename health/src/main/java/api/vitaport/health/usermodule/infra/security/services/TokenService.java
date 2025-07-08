@@ -18,7 +18,7 @@ import java.time.ZoneOffset;
 @Service
 public class TokenService {
 
-    private UserSecretKeys userSecretKeys;
+    private final UserSecretKeys userSecretKeys;
 
     @Autowired
     public TokenService(UserSecretKeys userSecretKeys){

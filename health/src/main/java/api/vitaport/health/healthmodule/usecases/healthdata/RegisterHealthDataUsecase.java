@@ -10,8 +10,8 @@ import api.vitaport.health.healthmodule.mappers.HealthDataMapper;
 import api.vitaport.health.healthmodule.usecases.healthdata.dto.ReadHealthDataDTO;
 import api.vitaport.health.healthmodule.usecases.healthdata.dto.RegisterHealthDataDTO;
 import api.vitaport.health.healthmodule.usecases.healthdata.validations.IRegisterRawHealthDataValidation;
-import api.vitaport.health.healthmodule.usecases.sse.SseService;
-import api.vitaport.health.wearablemodule.usecases.wearable.GetActualWearableUserUsecase;
+import api.vitaport.health.healthmodule.usecases.sse.HealthSSEService;
+import api.vitaport.health.wearablemodule.usecases.rentedWearable.GetActualWearableUserUsecase;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,18 +28,18 @@ public class RegisterHealthDataUsecase {
     //usecases
     private final GetActualWearableUserUsecase getActualWearableUserUsecase;
     //services
-    private final SseService sseService;
+    private final HealthSSEService healthSSEService;
     //validações
     private final List<IRegisterRawHealthDataValidation> registerRawHealthDataValidations;
 
     @Autowired
     public RegisterHealthDataUsecase(List<IRegisterRawHealthDataValidation> registerRawHealthDataValidations,
-                                     SseService sseService,
+                                     HealthSSEService healthSSEService,
                                      HealthDataMapper healthDataMapper,
                                      IEmployeeRepository employeeRepository,
                                      IHealthDataRepository healthDataRepository,
                                      GetActualWearableUserUsecase getActualWearableUserUsecase){
-        this.sseService = sseService;
+        this.healthSSEService = healthSSEService;
         this.healthDataMapper = healthDataMapper;
         this.employeeRepository = employeeRepository;
         this.healthDataRepository = healthDataRepository;
@@ -57,6 +57,6 @@ public class RegisterHealthDataUsecase {
         employee.addHealthData(healthData);
         employeeRepository.save(employee);
         ReadHealthDataDTO readHealthDataDTO = healthDataMapper.mapToReadHealthData(healthData);
-        sseService.sendHealthData(readHealthDataDTO);
+        healthSSEService.sendHealthData(readHealthDataDTO);
     }
 }

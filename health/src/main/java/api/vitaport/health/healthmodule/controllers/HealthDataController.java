@@ -5,7 +5,7 @@ import api.vitaport.health.healthmodule.domain.models.healthdata.HealthData;
 import api.vitaport.health.healthmodule.mappers.HealthDataMapper;
 import api.vitaport.health.healthmodule.usecases.healthdata.*;
 import api.vitaport.health.healthmodule.usecases.healthdata.dto.ReadHealthDataDTO;
-import api.vitaport.health.healthmodule.usecases.sse.SseService;
+import api.vitaport.health.healthmodule.usecases.sse.HealthSSEService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,7 +15,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -32,12 +31,12 @@ public class HealthDataController {
     private final GetLastEmployeeHealthDataUsecase getLastEmployeeHealthDataUsecase;
     private final GetLastEmployeeHealthDataListUsecase getLastEmployeeHealthDataListUsecase;
     private final HealthDataMapper healthDataMapper;
-    private final SseService sseService;
+    private final HealthSSEService healthSSEService;
     private final GlobalSecretKeys globalSecretKeys;
 
     @Autowired
     public HealthDataController(GetHealthDataUsecase getHealthDataUsecase,
-                                SseService sseService,
+                                HealthSSEService healthSSEService,
                                 GlobalSecretKeys globalSecretKeys,
                                 HealthDataMapper healthDataMapper,
                                 GetEmployeeHealthDataListUsecase getEmployeeHealthDataListUsecase,
@@ -45,7 +44,7 @@ public class HealthDataController {
                                 GetLastEmployeeHealthDataUsecase getLastEmployeeHealthDataUsecase,
                                 GetLastEmployeeHealthDataListUsecase getLastEmployeeHealthDataListUsecase){
         this.getHealthDataUsecase = getHealthDataUsecase;
-        this.sseService = sseService;
+        this.healthSSEService = healthSSEService;
         this.healthDataMapper = healthDataMapper;
         this.globalSecretKeys = globalSecretKeys;
         this.getEmployeeHealthDataListUsecase = getEmployeeHealthDataListUsecase;
@@ -96,7 +95,7 @@ public class HealthDataController {
         response.setHeader("Access-Control-Allow-Methods", "GET");
         response.setHeader("Access-Control-Allow-Headers", "*");
         SseEmitter sseEmitter = new SseEmitter(Long.MAX_VALUE);
-        sseService.addSseEmitter(sseEmitter);
+        healthSSEService.addSseEmitter(sseEmitter);
         return sseEmitter;
     }
 }

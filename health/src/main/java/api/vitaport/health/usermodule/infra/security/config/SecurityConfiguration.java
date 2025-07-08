@@ -68,7 +68,7 @@ public class SecurityConfiguration {
                 .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(requestMatcherRegistry -> {
                     requestMatcherRegistry.requestMatchers(HttpMethod.POST,"/user/register","/user/login").permitAll();
-                    requestMatcherRegistry.requestMatchers("/healthdata/sse").permitAll();
+                    requestMatcherRegistry.requestMatchers("/healthdata/sse","/gps/sse").permitAll();
                     requestMatcherRegistry.requestMatchers("/error").permitAll();
                     requestMatcherRegistry.requestMatchers("/v3/api-docs/**", // Adicione o /** aqui
                             "/swagger-ui/**",

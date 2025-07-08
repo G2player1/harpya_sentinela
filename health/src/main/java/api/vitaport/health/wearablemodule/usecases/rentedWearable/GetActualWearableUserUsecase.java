@@ -1,4 +1,4 @@
-package api.vitaport.health.wearablemodule.usecases.wearable;
+package api.vitaport.health.wearablemodule.usecases.rentedWearable;
 
 import api.vitaport.health.commonmodule.infra.exceptions.CannotGetEntityDataException;
 import api.vitaport.health.commonmodule.infra.exceptions.ErrorEnum;
