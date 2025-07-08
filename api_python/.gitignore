@@ -1,3 +1,7 @@
+.gitignore
+### VS Code ###
+.vscode/
+
 # Bytecode Python
 __pycache__/
 *.py[cod]

@@ -1,5 +1,6 @@
 package api.vitaport.health.gpsmodule.usecases.employeeLoc;
 
+import api.vitaport.health.gpsmodule.usecases.employeeLoc.dto.AlertEmployeeLocDTO;
 import api.vitaport.health.gpsmodule.usecases.employeeLoc.dto.EmployeeLocDTO;
 import api.vitaport.health.healthmodule.usecases.healthdata.dto.ReadHealthDataDTO;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,17 @@ public class EmployeeLocSSEService {
         for (SseEmitter sseEmitter : emitters){
             try {
                 sseEmitter.send(employeeLocDTO);
+            } catch (IOException e) {
+                sseEmitter.complete();
+                emitters.remove(sseEmitter);
+            }
+        }
+    }
+
+    public void sendAlertEmployeeLoc(AlertEmployeeLocDTO alertEmployeeLocDTO){
+        for (SseEmitter sseEmitter : emitters){
+            try {
+                sseEmitter.send(alertEmployeeLocDTO);
             } catch (IOException e) {
                 sseEmitter.complete();
                 emitters.remove(sseEmitter);
