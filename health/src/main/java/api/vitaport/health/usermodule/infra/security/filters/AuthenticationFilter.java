@@ -1,7 +1,10 @@
 package api.vitaport.health.usermodule.infra.security.filters;
 
+import api.vitaport.health.commonmodule.infra.exceptions.dto.ErrorDTO;
+import api.vitaport.health.usermodule.infra.exceptions.InvalidTokenException;
 import api.vitaport.health.usermodule.infra.repositories.IUserRepository;
 import api.vitaport.health.usermodule.infra.security.services.TokenService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -18,51 +21,39 @@ import java.io.IOException;
 @Component
 public class AuthenticationFilter extends OncePerRequestFilter {
 
-    private TokenService tokenService;
-    private IUserRepository userRepository;
-
-//    private static final List<String> PUBLIC_ENDPOINTS = Arrays.asList(
-//            "/user/register",
-//            "/user/login",
-//            // URLs do Swagger/OpenAPI
-//            "/v3/api-docs",                     // Base para a documentação (essencial para o startswith)
-//            "/swagger-ui.html",                 // Página principal do Swagger UI
-//            "/swagger-ui/",                     // Recursos estáticos do Swagger UI (CSS, JS, etc.)
-//            "/webjars/",                        // Recursos de webjars (onde o Swagger UI busca muitas dependências)
-//            "/swagger-resources/",              // Recursos do Swagger
-//            "/swagger-resources/configuration/ui", // Configurações de UI
-//            "/swagger-resources/configuration/security" // Configurações de segurança
-//            // Se você tiver outros endpoints específicos como /v3/api-docs.yaml, etc., adicione-os
-//            // mas o "/v3/api-docs" com startsWith geralmente cobre tudo para a documentação base.
-//    );
-
+    private final TokenService tokenService;
+    private final IUserRepository userRepository;
+    private final ObjectMapper objectMapper;
 
     @Autowired
-    public AuthenticationFilter(TokenService tokenService, IUserRepository userRepository){
+    public AuthenticationFilter(TokenService tokenService, IUserRepository userRepository, ObjectMapper objectMapper){
         this.tokenService = tokenService;
         this.userRepository = userRepository;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-//        String requestUri = request.getRequestURI();
-//
-//        for (String publicEndpoint : PUBLIC_ENDPOINTS) {
-//            if (requestUri.startsWith(publicEndpoint)) {
-//                filterChain.doFilter(request, response); // Passa para o próximo filtro e ignora a lógica de token
-//                return;
-//            }
-//        }
-
         String tokenJWT = this.retrieveToken(request);
-        if (tokenJWT != null){
-            var subject = tokenService.getSubject(tokenJWT);
-            var user = userRepository.findUserByEmail(subject);
-            if (user == null) throw new EntityNotFoundException("user not found or not exists");
-            var authenticationToken = new UsernamePasswordAuthenticationToken(user,null, user.getAuthorities());
-            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+        try {
+            if (tokenJWT != null){
+                var subject = tokenService.getSubject(tokenJWT);
+                var user = userRepository.findUserByEmail(subject);
+                if (user == null) throw new EntityNotFoundException("user not found or not exists");
+                var authenticationToken = new UsernamePasswordAuthenticationToken(user,null, user.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+            }
+            filterChain.doFilter(request,response);
+        } catch (InvalidTokenException e){
+            ErrorDTO errorDTO = new ErrorDTO(e);
+            sendError(response, errorDTO.code(), errorDTO);
         }
-        filterChain.doFilter(request,response);
+    }
+
+    private void sendError(HttpServletResponse response, int status, ErrorDTO errorDTO) throws IOException {
+        response.setStatus(status);
+        response.setContentType("application/json");
+        response.getWriter().write(objectMapper.writeValueAsString(errorDTO));
     }
 
     private String retrieveToken(HttpServletRequest request){

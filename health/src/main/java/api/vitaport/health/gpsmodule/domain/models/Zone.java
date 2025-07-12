@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.TypeRegistration;
 import org.locationtech.jts.geom.Polygon;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
+
 public class Zone {
 
     @Id

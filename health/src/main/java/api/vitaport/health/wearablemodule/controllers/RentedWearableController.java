@@ -12,10 +12,7 @@ import org.apache.kafka.common.message.ReadShareGroupStateSummaryRequestData;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -41,7 +38,7 @@ public class RentedWearableController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<CreatedRentedWearableDTO> registerRental(RegisterRentedWearableDTO registerRentedWearableDTO,
+    public ResponseEntity<CreatedRentedWearableDTO> registerRental(@RequestBody RegisterRentedWearableDTO registerRentedWearableDTO,
                                                                    UriComponentsBuilder uriBuilder){
         RentedWearable rentedWearable = registerRentedWearableUsecase.execute(registerRentedWearableDTO);
         CreatedRentedWearableDTO createdRentedWearableDTO = rentedWearableMapper.mapToCreatedDTO(rentedWearable);

@@ -49,7 +49,7 @@ public class UserController {
                                                        UriComponentsBuilder uriBuilder){
         User user = registerUserUsecase.execute(registerUserDTO);
         CreatedUserDTO createdUserDTO = userMapper.mapToCreatedUserDTO(user);
-        URI uri = uriBuilder.path("/user/{id}").buildAndExpand(createdUserDTO.id()).toUri();
+        URI uri = uriBuilder.path("/user/{employee_id}").buildAndExpand(createdUserDTO.id()).toUri();
         return ResponseEntity.created(uri).body(createdUserDTO);
     }
 
@@ -59,7 +59,7 @@ public class UserController {
         return ResponseEntity.ok(tokenDTO);
     }
 
-    @GetMapping("/id/{id}")
+    @GetMapping("/employee_id/{employee_id}")
     public ResponseEntity<ReadUserDTO> getUserData(@PathVariable("id") UUID id){
         User user = getUserDataUsecase.execute(id);
         ReadUserDTO readUserDTO = userMapper.mapToReadUserDTO(user);

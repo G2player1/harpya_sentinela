@@ -52,12 +52,12 @@ public class EmployeeController {
                                                                UriComponentsBuilder uriComponentsBuilder){
         Employee employee = registerEmployeeUsecase.execute(registerEmployeeDTO);
         CreatedEmployeeDTO createdEmployeeDTO = employeeMapper.mapToCreatedEmployeeDTO(employee);
-        URI uri = uriComponentsBuilder.path("/employee/{id}").buildAndExpand(createdEmployeeDTO.id()).toUri();
+        URI uri = uriComponentsBuilder.path("/employee/{employee_id}").buildAndExpand(createdEmployeeDTO.employee_id()).toUri();
         return ResponseEntity.created(uri).body(createdEmployeeDTO);
     }
 
-    @GetMapping("/id/{id}")
-    public ResponseEntity<ReadEmployeeDTO> getEmployeeData(@PathVariable("id") UUID id){
+    @GetMapping("/employee/{employee_id}")
+    public ResponseEntity<ReadEmployeeDTO> getEmployeeData(@PathVariable("employee_id") UUID id){
         Employee employee = getEmployeeDataUsecase.execute(id);
         ReadEmployeeDTO readEmployeeDTO = employeeMapper.mapToReadEmployeeDTO(employee);
         return ResponseEntity.ok(readEmployeeDTO);

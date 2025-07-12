@@ -6,9 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice("api.vitaport.wearablemodule")
+@RestControllerAdvice("api.vitaport.health.wearablemodule")
 public class WearableErrorHandler {
-
 
     @ExceptionHandler(RentWearableValidationException.class)
     public ResponseEntity<ErrorDTO> handle(RentWearableValidationException e){

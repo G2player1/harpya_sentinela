@@ -6,7 +6,7 @@ import api.vitaport.health.usermodule.usecases.user.dtos.ReadUserDTO;
 import java.util.UUID;
 
 public record ReadEmployeeDTO(
-        UUID id,
+        UUID employee_id,
         ReadUserDTO user,
         String registrationNumber,
         String cpf,

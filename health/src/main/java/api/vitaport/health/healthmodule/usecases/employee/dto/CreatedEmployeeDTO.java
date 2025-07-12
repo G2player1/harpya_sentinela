@@ -5,7 +5,7 @@ import api.vitaport.health.healthmodule.domain.models.employee.Employee;
 import java.util.UUID;
 
 public record CreatedEmployeeDTO(
-        UUID id,
+        UUID employee_id,
         UUID user_id,
         String registrationNumber,
         String cpf,

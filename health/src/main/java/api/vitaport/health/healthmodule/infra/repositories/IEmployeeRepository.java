@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface IEmployeeRepository extends JpaRepository<Employee, UUID> {
 
-    @Query(value = "SELECT e.* FROM employee e JOIN users u ON u.id = e.user_id WHERE u.email = :email", nativeQuery = true)
+    @Query(value = "SELECT e.* FROM employee e JOIN users u ON u.employee_id = e.user_id WHERE u.email = :email", nativeQuery = true)
     Employee findEmployeeByEmail(@Param("email") String email);
 
     @Query(value = "select * from employee where registration_number = :reg", nativeQuery = true)

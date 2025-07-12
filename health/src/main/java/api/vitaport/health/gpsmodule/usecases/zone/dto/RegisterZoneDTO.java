@@ -6,7 +6,7 @@ import java.util.UUID;
 public record RegisterZoneDTO(
         String name,
         String description,
-        List<RegisterPointDTO> points,
+        List<PointDTO> points,
         List<UUID> employees
 ) {
 }

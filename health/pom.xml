@@ -128,13 +128,11 @@
 			<artifactId>jts-core</artifactId>
 			<version>1.19.0</version>
 		</dependency>
-		<!-- Hibernate Spatial para integração do PostGIS com JPA -->
 		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-spatial -->
 		<dependency>
 			<groupId>org.hibernate</groupId>
 			<artifactId>hibernate-spatial</artifactId>
-			<version>7.0.5.Final</version>
-			<type>pom</type>
+			<version>6.4.2.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.modulith</groupId>

@@ -50,6 +50,7 @@ public class HealthData {
     private DataQuality quality;
     @Column(name = "consistence", nullable = false)
     private String consistenceMessage;
+    @JoinColumn(name = "employee_id")
     @ManyToOne(fetch = FetchType.EAGER)
     @JsonBackReference
     private Employee employee;

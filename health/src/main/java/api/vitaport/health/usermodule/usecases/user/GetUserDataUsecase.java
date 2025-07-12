@@ -26,7 +26,7 @@ public class GetUserDataUsecase {
         try {
             return userRepository.getReferenceById(id);
         } catch (EntityNotFoundException | NoResultException e){
-            throw new CannotGetEntityDataException(400, ErrorEnum.LBDQ, "cant get user by id");
+            throw new CannotGetEntityDataException(400, ErrorEnum.LBDQ, "cant get user by employee_id");
         }
     }
 }

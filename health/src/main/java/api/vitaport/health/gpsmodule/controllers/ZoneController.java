@@ -40,7 +40,7 @@ public class ZoneController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<CreatedZoneDTO> registerZone(RegisterZoneDTO registerZoneDTO, UriComponentsBuilder uriBuilder){
+    public ResponseEntity<CreatedZoneDTO> registerZone(@RequestBody RegisterZoneDTO registerZoneDTO, UriComponentsBuilder uriBuilder){
         Zone zone = registerZoneUsecase.execute(registerZoneDTO);
         CreatedZoneDTO createdZoneDTO = zoneMapper.mapToCreatedDTO(zone);
         URI uri = uriBuilder.path("/zone?uuid={uuid}").buildAndExpand(createdZoneDTO.zone_id()).toUri();

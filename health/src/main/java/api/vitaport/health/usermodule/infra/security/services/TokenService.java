@@ -1,5 +1,6 @@
 package api.vitaport.health.usermodule.infra.security.services;
 
+import api.vitaport.health.commonmodule.infra.exceptions.ErrorEnum;
 import api.vitaport.health.usermodule.domain.models.user.User;
 import api.vitaport.health.usermodule.infra.config.UserSecretKeys;
 import api.vitaport.health.usermodule.infra.exceptions.CreateTokenException;
@@ -34,7 +35,7 @@ public class TokenService {
                     .withExpiresAt(this.dataExpire())
                     .sign(algorithm);
         } catch (JWTCreationException exception){
-            throw new CreateTokenException("Error: Failure to create TokenJWT\n" + exception.getMessage());
+            throw new CreateTokenException(400, ErrorEnum.LAPI, "Failure to create TokenJWT");
         }
     }
 
@@ -47,7 +48,7 @@ public class TokenService {
                     .verify(tokenJWT)
                     .getSubject();
         } catch (JWTVerificationException exception){
-            throw new InvalidTokenException("Error: Invalid TokenJWT or Expired TokenJWT\n" + exception.getMessage());
+            throw new InvalidTokenException(400, ErrorEnum.LAPI, "Invalid TokenJWT or Expired TokenJWT");
         }
     }
 

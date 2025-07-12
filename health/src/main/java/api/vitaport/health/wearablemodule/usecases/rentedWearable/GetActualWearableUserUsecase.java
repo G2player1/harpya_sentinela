@@ -25,7 +25,7 @@ public class GetActualWearableUserUsecase {
         try {
             return rentedWearableRepository.findCurrentEmployeeByWearableId(wearable_id);
         } catch (EntityNotFoundException | NoResultException e){
-            throw new CannotGetEntityDataException(400, ErrorEnum.LBDQ, "cant get employee by wearable id");
+            throw new CannotGetEntityDataException(400, ErrorEnum.LBDQ, "cant get employee by wearable employee_id");
         }
     }
 }

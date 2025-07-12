@@ -19,7 +19,10 @@ public class AlreadyHadRentedWearableValidation extends RegisterRentedWearableVa
     @Override
     public void validate(RegisterRentedWearableDTO registerRentedWearableDTO) {
         Employee employee = employeeRepository.findEmployeeByRegistration(registerRentedWearableDTO.employee_registration_number());
-        if (employee.getRentedWearable().getInUse() == false)
-            throw new RentWearableValidationException(400, ErrorEnum.LAPI, "employee already have a rented wearable in use");
+        if (employee.getRentedWearable() != null){
+            if (employee.getRentedWearable().getInUse())
+                throw new RentWearableValidationException(400, ErrorEnum.LAPI, "employee already have a rented wearable in use");
+        }
+
     }
 }
