@@ -12,7 +12,7 @@ COPY --from=build /app/target/health-0.0.1-SNAPSHOT.jar /app/app.jar
 
 WORKDIR /app
 
-ENV SPRING_PROFILES_ACTIVE="docker"
+ENV SPRING_PROFILES_ACTIVE="prod"
 
 EXPOSE 8081
 
