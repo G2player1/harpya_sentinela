@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: sentinela
-    env: docker
-    plan: starter
-    dockerCommand: |
-      docker-compose up --build --remove-orphans

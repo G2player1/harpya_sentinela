@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: harpya-sentinela
+    env: docker
+    plan: starter # Ou use "starter" se quiser economizar, mas 2 GB RAM é o ideal
+    dockerCommand: |
+      docker-compose up --build --remove-orphans
+    repo: https://github.com/G2player1/harpya_sentinela
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /
